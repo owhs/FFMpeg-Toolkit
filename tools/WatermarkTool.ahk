@@ -42,6 +42,8 @@ WatermarkTool() {
     
     ; Layout State
     global PreviewRect := {x:0, y:0, w:0, h:0} 
+
+    global fontOptions
     
     
     ; ==============================================================================
@@ -190,7 +192,7 @@ WatermarkTool() {
     
     ; Font
     lblFont := myGui.Add("Text", Format("x{} y{} w40 h24 +0x200", xP, yP), "Font:")
-    ddlFont := DarkDropdown(myGui, xP+45, yP, wCol-50, ["Arial", "Calibri", "Comic Sans MS", "Consolas", "Corbel", "Courier New", "Impact", "Segoe UI", "Tahoma", "Terminal", "Times New Roman", "Trebuchet MS", "Verdana"], "PropFont", UpdateActiveLayer)
+    ddlFont := DarkDropdown(myGui, xP+45, yP, wCol-50, fontOptions, "PropFont", UpdateActiveLayer)
     PropControls.FontLabel := lblFont
     PropControls.Font := ddlFont
     yP += 32

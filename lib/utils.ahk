@@ -23,6 +23,8 @@ Theme.DarkPanel   := "121212"        ; Inactive Tab color
 Theme.DropdownHover := "2E7D32"      ; A nice Dark Green
 Theme.DropdownSelected := "353535"   ; Background for the item currently active
 
+
+global fontOptions := ["Arial", "Calibri", "Comic Sans MS", "Consolas", "Corbel", "Courier New", "Franklin Gothic Medium", "Impact", "Lucida Sans", "NSimSun", "Segoe UI", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"]
 ; ==============================================================================
 ; WINDOW & SYSTEM UTILS
 ; ==============================================================================
@@ -153,22 +155,70 @@ RunColorPicker(targetEditCtrl, parentHwnd) {
     }
 }
 
+; GetFontFile(fontName) {
+;     if InStr(fontName, "\")
+;         return fontName
+    
+;     ; Basic mapping, extend as needed
+;     switch fontName {
+;         case "Arial": return "C:/Windows/Fonts/arial.ttf"
+;         case "Calibri": return "C:/Windows/Fonts/calibri.ttf"
+;         case "Courier New": return "C:/Windows/Fonts/cour.ttf"
+;         case "Impact": return "C:/Windows/Fonts/impact.ttf"
+;         case "Segoe UI": return "C:/Windows/Fonts/segoeui.ttf"
+;         case "Tahoma": return "C:/Windows/Fonts/tahoma.ttf"
+;         case "Times New Roman": return "C:/Windows/Fonts/times.ttf"
+;         case "Verdana": return "C:/Windows/Fonts/verdana.ttf"
+;         default: return "C:/Windows/Fonts/arial.ttf"
+;     }
+; }
+
 GetFontFile(fontName) {
     if InStr(fontName, "\")
         return fontName
+
+    ; Standard Windows font registry locations
+    regPaths := [
+        "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts",
+        "HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\Fonts"
+    ]
     
-    ; Basic mapping, extend as needed
-    switch fontName {
-        case "Arial": return "C:/Windows/Fonts/arial.ttf"
-        case "Calibri": return "C:/Windows/Fonts/calibri.ttf"
-        case "Courier New": return "C:/Windows/Fonts/cour.ttf"
-        case "Impact": return "C:/Windows/Fonts/impact.ttf"
-        case "Segoe UI": return "C:/Windows/Fonts/segoeui.ttf"
-        case "Tahoma": return "C:/Windows/Fonts/tahoma.ttf"
-        case "Times New Roman": return "C:/Windows/Fonts/times.ttf"
-        case "Verdana": return "C:/Windows/Fonts/verdana.ttf"
-        default: return "C:/Windows/Fonts/arial.ttf"
+    ; 1. First Pass: Look for an EXACT match (prevents "Arial" -> "Arial Rounded")
+    for regPath in regPaths {
+        Loop Reg, regPath, "V" {
+            ; Remove suffixes like (TrueType), (VGA), (8514), etc.
+            cleanName := RegExReplace(A_LoopRegName, " \((TrueType|OpenType|VGA|850|8514|Set #\d)\)$", "")
+            
+            if (cleanName = fontName)
+                return BuildFullPath(RegRead())
+        }
     }
+
+    ; 2. Second Pass: Fuzzy match for complex names (e.g., "NSimSun & SimSun")
+    for regPath in regPaths {
+        Loop Reg, regPath, "V" {
+            if InStr(A_LoopRegName, fontName)
+                return BuildFullPath(RegRead())
+        }
+    }
+
+    ; Fallback to Arial if all else fails
+    return A_WinDir "\Fonts\arial.ttf"
+}
+
+/**
+ * Helper to ensure we return a full path.
+ * Windows stores system fonts as filenames, but user fonts as full paths.
+ */
+BuildFullPath(path) {
+    if InStr(path, "\") ; Already a full path (User font)
+        return path
+    
+    fullPath := A_WinDir "\Fonts\" path
+    if FileExist(fullPath)
+        return fullPath
+        
+    return path ; Return original if we can't verify
 }
 
 ; ==============================================================================
