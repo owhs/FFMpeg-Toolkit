@@ -54,6 +54,9 @@ Tools can be launched directly without the main menu by passing the tool name as
 ### Converters
 
 **Universal Converter**
+
+![Converter Tool Screenshot](.github/convert.png)
+
 A general-purpose tool for transcoding video and audio.
 *   **Video Scaling:** Resize to standard resolutions (1080p, 720p) or custom dimensions.
 *   **Speed Control:** Adjust playback speed (0.5x to 4.0x) or "Fit to Duration" to force a video to match a specific length.
@@ -65,6 +68,9 @@ A general-purpose tool for transcoding video and audio.
 *   **Splitter:** Segment videos into N equal parts, split by time duration (e.g., every 30 seconds), or extract specific time ranges.
 
 **Stream Chunker**
+
+![Stream Chunker Tool Screenshot](.github/stream.png)
+
 Designed for HLS (HTTP Live Streaming) and DASH workflows.
 *   **Splitting:** Converts video into `.m3u8` or `.mpd` playlists with segment files.
 *   **Encryption:** Supports AES-128 encryption generation for HLS segments.
@@ -73,7 +79,9 @@ Designed for HLS (HTTP Live Streaming) and DASH workflows.
 ### Editors
 
 **Crop Tool**
+
 ![Crop Tool Screenshot](.github/crop.png)
+
 Visually crop video footage.
 *   **Visual Preview:** Interactive crop box with drag-and-drop handles.
 *   **Aspect Ratio Locking:** Lock cropping area to 16:9, 4:3, 1:1, or 9:16.
@@ -98,7 +106,9 @@ Generate intermediate frames to smooth out video or create slow motion (Optical 
 *   **Algorithms:** Configurable motion estimation (Bidirectional/Bilateral) and compensation (AOBMC/OBMC).
 
 **Watermark Tool**
+
 ![Watermark Tool Screenshot](.github/watermarker.png)
+
 Advanced multi-layer overlay system.
 *   **Visual Editor:** Drag-and-drop positioning for text and image layers on a live preview canvas.
 *   **Timeline Control:** Set start/end times and fade-in/out durations for each layer.
@@ -118,12 +128,18 @@ Advanced multi-layer overlay system.
 *   **Resizing:** Downscale high-resolution photos (e.g., 4K/8K) to standard video resolutions.
 
 **Audio to Video**
+
+![Watermark Tool Screenshot](.github/audio2video.png)
+
 Create video files from audio tracks.
 *   **Visual Modes:** Use a static image, a solid color, or text-over-color.
 *   **Fit Modes:** Handle image aspect ratios with padding, cropping, or blurred backgrounds.
 *   **Fading:** Visual fade-in/out options.
 
 **Contact Sheets**
+
+![Contact Sheet Tool Screenshot](.github/contact.png)
+
 Batch processor for generating video thumbnails and previews.
 *   **Batch Queue:** Process multiple video files in sequence.
 *   **Layouts:** Create grids (Contact Sheets), Filmstrips (Horizontal/Vertical), or single thumbnails.
