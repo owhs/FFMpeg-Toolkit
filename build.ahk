@@ -127,6 +127,7 @@
         FileCreateShortcut(finalExe,buildDir . "\TimeLapseTool.lnk",,"TimeLapseTool","")
         FileCreateShortcut(finalExe,buildDir . "\VideoJoinerSplitter.lnk",,"VideoJoinerSplitter","")
         FileCreateShortcut(finalExe,buildDir . "\WatermarkTool.lnk",,"WatermarkTool","")
+        FileCreateShortcut(finalExe,buildDir . "\CropTool.lnk",,"CropTool","")
         
         Step_Short()
         
