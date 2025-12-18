@@ -44,6 +44,7 @@ try {
 #Include tools\ScreenRecorder.ahk
 #Include tools\WatermarkTool.ahk
 #Include tools\MediaInfoTool.ahk
+#Include tools\CropTool.ahk
 
 
 global AppName := "FFMpeg Tool Suite"
@@ -63,6 +64,7 @@ ToolGroups["Converters"] := [
 ]
 
 ToolGroups["Editors"] := [
+    {name: "Crop Tool",           file: "CropTool",           desc: "Visually crop video and optionally fit/pad to a new frame size."},
     {name: "Visual Filters",      file: "FilterTool",         desc: "Apply restoration filters: Denoise, Deinterlace, Sharpen, and Color adjustments."},
     {name: "Stabilizer Tool",      file: "StabilizerTool",         desc: "Video Stabilizer; applies smoothing and zoom."},
     {name: "Motion Interpolation",      file: "MotionInterpolationTool",        desc: "Smoothens video by generating new frames using Optical Flow."},
@@ -107,6 +109,7 @@ if (A_Args.Length > 0) {
         Case "ScreenRecorder", "Recorder":       ScreenRecorder(), matched := true
         Case "WatermarkTool", "Watermark":       WatermarkTool(), matched := true
         Case "MediaInfoTool", "MediaInfo":       MediaInfoTool(), matched := true
+        Case "CropTool", "Crop":                 CropTool(), matched := true
     }
     
     if (matched)
@@ -125,8 +128,8 @@ LauncherGUI(){
     InitWindowUtils(myGui)
     myGui.OnEvent("Close", (*) => myGui.Destroy())
 
-    GuiWidth := 650 ; Increased width for 4 columns
-    GuiHeight := 300
+    GuiWidth := 650
+    GuiHeight := 350
 
     ; --- HEADER ---
     ;myGui.Add("Text", Format("x0 y0 w{} h50 Background{}", GuiWidth, Theme.DarkPanel), "")
@@ -152,7 +155,7 @@ LauncherGUI(){
     ; --- FOOTER ---
     yFooter := GuiHeight - 30
     myGui.Add("Text", Format("x0 y{} w{} h30 Background{}", yFooter, GuiWidth, Theme.DarkPanel), "")
-    myGui.Add("Text", Format("x0 y{} w{} h30 BackgroundTrans c888888 Center +0x200", yFooter, GuiWidth), "v2.1 - Suite Launcher")
+    myGui.Add("Text", Format("x0 y{} w{} h30 BackgroundTrans c888888 Center +0x200", yFooter, GuiWidth), "v2.2 - Suite Launcher")
 
     Tabs.Switch("Converters")
     myGui.Show(Format("w{} h{}", GuiWidth, GuiHeight))
@@ -234,5 +237,8 @@ LaunchTool(tool, *) {
 
     else if (tool=="MediaInfoTool")
         MediaInfoTool()
+
+    else if (tool=="CropTool")
+        CropTool()
         
 }
