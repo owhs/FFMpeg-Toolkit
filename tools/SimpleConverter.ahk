@@ -1,3 +1,4 @@
+
 /*
     FFmpeg Universal Converter (AHK v2)
     -----------------------------------
@@ -205,7 +206,7 @@ SimpleConverter(){
     }
 
     SelectInput(*) {
-        path := FileSelect(1, , "Select Input Media", "Media (*.mp4; *.mkv; *.webm; *.avi; *.mov; *.mp3; *.wav; *.flac; *.jpg; *.png)")
+        path := FileSelect(1, , "Select Input Media", "Media (*.mp4; *.mkv; *.webm; *.avi; *.mov; *.mp3; *.m4a; *.wav; *.flac)")
         if path 
             edtInput.Value := path
     }
@@ -431,25 +432,40 @@ SimpleConverter(){
         isImgSeq    := InStr(saved.OutFormat, "Sequence")
         isGif       := InStr(saved.OutFormat, "GIF")
 
+        if (isAudioOnly)
+            args.Push("-vn") ; Disable video output if user specifically requested audio only
+
         if (isImgSeq || isGif) {
             ; No audio for images
         } else {
-            if (saved.AudCodec == "Disable Audio") {
+            ; Determine effective codec based on user choice or output constraints
+            targetCodec := saved.AudCodec
+            
+            ; Enforce codec if container demands it
+            if InStr(saved.OutFormat, "MP3")
+                targetCodec := "MP3"
+            else if InStr(saved.OutFormat, "WAV")
+                targetCodec := "WAV"
+
+            if (targetCodec == "Disable Audio") {
                 args.Push("-an")
-            } else if (saved.AudCodec == "Copy (No Transcode)") {
+            } else if (targetCodec == "Copy (No Transcode)") {
                 ; Can't copy if speed changed
                 if (speedFactor != 1.0)
                     throw Error("Cannot use 'Copy' codec with Speed/Duration changes. Select AAC or MP3.")
                 args.Push("-c:a", "copy")
             } else {
                 ; Codec Selection
-                if (saved.AudCodec == "MP3")
+                if (targetCodec == "MP3")
                     args.Push("-c:a", "libmp3lame")
-                else if (saved.AudCodec == "AAC (Standard)")
+                else if (targetCodec == "WAV")
+                    args.Push("-c:a", "pcm_s16le")
+                else if (targetCodec == "AAC (Standard)")
                     args.Push("-c:a", "aac")
                 
-                ; Bitrate
-                args.Push("-b:a", saved.AudBitrate)
+                ; Bitrate (Ignore for WAV/PCM)
+                if (targetCodec != "WAV")
+                    args.Push("-b:a", saved.AudBitrate)
 
                 ; Audio Filters (Volume / Speed)
                 afilters := []
