@@ -4,7 +4,6 @@
     Tool 1: Extract Audio - Rip audio tracks from video files.
     Tool 2: Replace Audio - Swap, add, or remove audio tracks in a video.
 */
-#Requires AutoHotkey v2.0
 
 
 #Include ..\lib\utils.ahk

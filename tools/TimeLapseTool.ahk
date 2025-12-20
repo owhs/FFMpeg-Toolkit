@@ -4,7 +4,6 @@
     Creates videos from sequences of images.
     Features: Folder/File selection, Sorting, Resizing, FPS control.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 TimeLapseTool(){

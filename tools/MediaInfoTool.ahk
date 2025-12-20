@@ -4,7 +4,6 @@
     -------------------------------
     Analyzes media files using ffprobe and displays detailed metadata.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 MediaInfoTool() {

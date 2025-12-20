@@ -4,7 +4,8 @@
     --------------------------------
     Visually crop video with aspect ratio locking and output padding support.
 */
-#Requires AutoHotkey v2.0
+
+#Include ..\lib\utils.ahk
 
 CropTool() {
     global AppName := "FFMpeg: Crop Tool"

@@ -12,7 +12,7 @@
     - Layer Reordering.
     - Scrollable Layer List (Uses new Utils Class).
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 WatermarkTool() {
@@ -1168,7 +1168,7 @@ WatermarkTool() {
                 fontFile := GetFontFile(L.Font)
                 safeFont := StrReplace(fontFile, "\", "/")
                 safeFont := StrReplace(safeFont, ":", "\:")
-                
+
                 boxOpts := ""
                 if (L.HasProp("HasBg") && L.HasBg) {
                     bgHex := (L.HasProp("BgColor") && L.BgColor != "") ? L.BgColor : "000000"

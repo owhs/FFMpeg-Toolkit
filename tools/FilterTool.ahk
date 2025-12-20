@@ -5,7 +5,6 @@
     Apply common video restoration and enhancement filters.
     Features: Deinterlace, Denoise, Sharpen, Color, Interlace Detection.
 */
-#Requires AutoHotkey v2.0
 
 
 #Include ..\lib\utils.ahk

@@ -4,7 +4,7 @@
     A general purpose wrapper using the existing lib/utils.ahk framework.
     Features: Resize, Speed (incl. Fit to Duration), Trim, Extract Frames, Preview Chunks, Presets.
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 SimpleConverter(){

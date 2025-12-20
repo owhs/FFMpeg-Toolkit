@@ -8,7 +8,6 @@
     
     Note: 'minterpolate' is very CPU intensive.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 MotionInterpolationTool() {

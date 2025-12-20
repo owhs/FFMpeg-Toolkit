@@ -5,7 +5,6 @@
     Features: Grid/Strip modes, Burst capture, Custom Layouts, Batch Queue.
     Updated: Uses customDialog for progress tracking.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 ContactSheetMaker(){

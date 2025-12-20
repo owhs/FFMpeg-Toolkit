@@ -1,5 +1,5 @@
 
-#Requires AutoHotkey v2.0
+
 /*
     FFmpeg Screen Recorder & Timelapse Tool (AHK v2)
     ------------------------------------------------

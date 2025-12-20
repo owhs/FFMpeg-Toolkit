@@ -5,7 +5,6 @@
     ----------------------------------------
     Wraps FFmpeg to convert audio files into video.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 AudioToVideo(){

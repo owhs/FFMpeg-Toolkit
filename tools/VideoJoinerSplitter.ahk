@@ -4,7 +4,7 @@
     Tool 1: Joiner - Concatenate multiple video files into one.
     Tool 2: Splitter - Split video by parts, duration, or specific time range.
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 VideoJoinerSplitter(){

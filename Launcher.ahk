@@ -45,7 +45,7 @@ try {
 #Include tools\WatermarkTool.ahk
 #Include tools\MediaInfoTool.ahk
 #Include tools\CropTool.ahk
-
+#Include tools\MusicVisualizer.ahk
 
 global AppName := "FFMpeg Tool Suite"
 
@@ -57,6 +57,13 @@ global AppName := "FFMpeg Tool Suite"
 
 global ToolGroups := Map()
 
+ToolGroups["Best"] := [
+    {name: "Crop Tool",           file: "CropTool",           desc: "Visually crop video and optionally fit/pad to a new frame size."},
+    {name: "Watermark Tool",      file: "WatermarkTool",         desc: "Add logos or text overlays to your videos."},
+    {name: "Contact Sheets",      file: "ContactSheetMaker",  desc: "Generate thumbnail grids, preview strips, and burst captures."},
+    {name: "Audio to Video",      file: "AudioToVideo",    desc: "Create video files from audio tracks using static images or solid colors."},
+    {name: "Universal Converter", file: "SimpleConverter", desc: "Convert, resize, trim, change speed, and adjust quality for any video/audio."},
+],
 ToolGroups["Converters"] := [
     {name: "Universal Converter", file: "SimpleConverter", desc: "Convert, resize, trim, change speed, and adjust quality for any video/audio."},
     {name: "Joiner && Splitter",   file: "VideoJoinerSplitter",desc: "Merge multiple files or split videos by duration/parts."},
@@ -72,6 +79,7 @@ ToolGroups["Editors"] := [
 ]
 
 ToolGroups["Creators"] := [
+    {name: "Music Visualizer",    file: "MusicVisualizer",  desc: "Turn audio into video with waveform and spectrum visualizations."},
     {name: "Screen Recorder",      file: "ScreenRecorder",         desc: "Screen Recorder && Timelapse Tool."},
     {name: "Time-Lapse Creator",  file: "TimeLapseTool",   desc: "Stitch image sequences into high-quality video files."},
     {name: "Audio to Video",      file: "AudioToVideo",    desc: "Create video files from audio tracks using static images or solid colors."},
@@ -110,6 +118,7 @@ if (A_Args.Length > 0) {
         Case "WatermarkTool", "Watermark":       WatermarkTool(), matched := true
         Case "MediaInfoTool", "MediaInfo":       MediaInfoTool(), matched := true
         Case "CropTool", "Crop":                 CropTool(), matched := true
+        Case "MusicVisualizer", "Visualizer":    MusicVisualizer(), matched := true
     }
     
     if (matched)
@@ -129,7 +138,7 @@ LauncherGUI(){
     myGui.OnEvent("Close", (*) => myGui.Destroy())
 
     GuiWidth := 650
-    GuiHeight := 350
+    GuiHeight := 360
 
     ; --- HEADER ---
     ;myGui.Add("Text", Format("x0 y0 w{} h50 Background{}", GuiWidth, Theme.DarkPanel), "")
@@ -140,13 +149,15 @@ LauncherGUI(){
     ; --- TABS ---
     Tabs := TabManager(myGui, Theme)
 
-    tW := GuiWidth / 4
-    Tabs.Add("Converters", 0,     0, tW, 40, "Converters")
-    Tabs.Add("Editors",    tW,    0, tW, 40, "Editors")
-    Tabs.Add("Creators",   tW*2,  0, tW, 40, "Creators")
-    Tabs.Add("Utilities",  tW*3,  0, tW, 40, "Utilities")
+    tW := GuiWidth / 5
+    Tabs.Add("Most Useful", 0,     0, tW, 40, "Best")
+    Tabs.Add("Converters", tW,     0, tW, 40, "Converters")
+    Tabs.Add("Editors",    tW*2,    0, tW, 40, "Editors")
+    Tabs.Add("Creators",   tW*3,  0, tW, 40, "Creators")
+    Tabs.Add("Utilities",  tW*4,  0, tW, 40, "Utilities")
 
     ; Render Groups
+    RenderGroup("Best")
     RenderGroup("Converters")
     RenderGroup("Editors")
     RenderGroup("Creators")
@@ -157,7 +168,7 @@ LauncherGUI(){
     myGui.Add("Text", Format("x0 y{} w{} h30 Background{}", yFooter, GuiWidth, Theme.DarkPanel), "")
     myGui.Add("Text", Format("x0 y{} w{} h30 BackgroundTrans c888888 Center +0x200", yFooter, GuiWidth), "v2.2 - Suite Launcher")
 
-    Tabs.Switch("Converters")
+    Tabs.Switch("Best")
     myGui.Show(Format("w{} h{}", GuiWidth, GuiHeight))
     
     
@@ -240,5 +251,8 @@ LaunchTool(tool, *) {
 
     else if (tool=="CropTool")
         CropTool()
+
+    else if (tool=="MusicVisualizer")
+        MusicVisualizer()
         
 }

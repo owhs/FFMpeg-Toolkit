@@ -1,5 +1,3 @@
-#Requires AutoHotkey v2.0
-
 /*
  !              NAME  :    customDialog
  !            AUTHOR  :    OWHS (Improved)
@@ -271,6 +269,7 @@ customDialog(info := {}, defaults := {}) {
         exitEnabled: defaults.HasProp("exitEnabled") && defaults.exitEnabled == false ? false : true,
         exitWidth: defaults.HasProp("exitWidth") && defaults.exitWidth ? defaults.exitWidth : 40,
         exitBG: defaults.HasProp("exitBG") && defaults.exitBG ? defaults.exitBG : "250d0d",
+        exitBGHover: defaults.HasProp("exitBGHover") && defaults.exitBGHover ? defaults.exitBGHover : "701c1c",
         exitColor: defaults.HasProp("exitColor") && (defaults.exitColor || defaults.exitColor == "000000") ? defaults.exitColor : "",
 
         popupSound: defaults.HasProp("popupSound") && defaults.popupSound == false ? false : true,
@@ -345,6 +344,7 @@ customDialog(info := {}, defaults := {}) {
     exitEnabled := info.HasProp("exitEnabled") && info.exitEnabled == false ? false : defaultProperties.exitEnabled
     exitWidth := info.HasProp("exitWidth") && info.exitWidth ? info.exitWidth : defaultProperties.exitWidth
     exitBG := info.HasProp("exitBG") && info.exitBG ? info.exitBG : defaultProperties.exitBG
+    exitBGHover := info.HasProp("exitBGHover") && info.exitBGHover ? info.exitBGHover : defaultProperties.exitBGHover
     exitColor := info.HasProp("exitColor") && (info.exitColor || info.exitColor == "000000") ? info.exitColor : defaultProperties.exitColor ? defaultProperties.exitColor : fontColor
 
     popupSound := info.HasProp("popupSound") && info.popupSound == false ? false : defaultProperties.popupSound
@@ -427,7 +427,7 @@ customDialog(info := {}, defaults := {}) {
         dlg.SetFont("s13 c" exitColor, "Segoe UI")
         exitBtn := dlg.AddText("x" width - exitWidth " y0 w" exitWidth " h" titlebarHeight " Background" exitBG " Center +0x200", "x")
         exitBtn.OnEvent("click", ButtonClick.Bind("")) ; Clicking it returns an empty string.
-        hoverControls[exitBtn.Hwnd] := {type: "exit", def: exitBG, hov: exitBG} ; Add to hover map (just for cursor mainly, exit usually has hardcoded hover logic in some frameworks, but here we can rely on cursor)
+        hoverControls[exitBtn.Hwnd] := {type: "btn", def: exitBG, hov: exitBGHover} ; Add to hover map (just for cursor mainly, exit usually has hardcoded hover logic in some frameworks, but here we can rely on cursor)
         dlg.SetFont("s10", "Segoe UI") ; Reset font for other controls.
     }
 
@@ -730,7 +730,7 @@ customDialog(info := {}, defaults := {}) {
 
     ; Handles the Enter key, triggering the first button's action.
     DefaultButtonAction(key) {
-        ButtonClick(defaultReturnValue)
+        try ButtonClick(defaultReturnValue)
     }
 
     ; Handles the Escape key, simulating a click on the 'x' button.

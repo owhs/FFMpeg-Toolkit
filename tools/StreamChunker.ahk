@@ -8,7 +8,7 @@
     1. Split: Video -> M3U8/DASH Playlist + Chunks
     2. Join:  M3U8/DASH Playlist -> Single Video
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 

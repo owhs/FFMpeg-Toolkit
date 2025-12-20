@@ -4,7 +4,6 @@
     Analyze media content for specific events.
     Features: Scene Detection, Silence Detection, Black Frames, Freeze Frames.
 */
-#Requires AutoHotkey v2.0
 
 #Include ..\lib\utils.ahk
 RecognitionTool(){

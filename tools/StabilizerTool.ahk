@@ -12,7 +12,7 @@
     - Side-by-Side Preview generation.
     - Tripod vs Smoothing modes.
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 StabilizerTool() {

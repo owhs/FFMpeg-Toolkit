@@ -4,7 +4,7 @@
     Tool 1: Convert/Extract - Convert subtitle formats or extract from video.
     Tool 2: Add Subtitles - Mux (Soft) or Burn-in (Hard) subtitles.
 */
-#Requires AutoHotkey v2.0
+
 
 #Include ..\lib\utils.ahk
 
