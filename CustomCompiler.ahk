@@ -40,30 +40,34 @@
         ]
 
     ;! Fixed locations:
-        ahk2exe := build_tools_dir "\Ahk2Exe.exe"
-        upxPatcher := build_tools_dir "\UPX-Patcher.exe"
-        upx := build_tools_dir "\upx.exe"
-        verpatch := build_tools_dir "\verpatch.exe"
+        ahk2exe := "\Ahk2Exe.exe"
+        upxPatcher := "\UPX-Patcher.exe"
+        upx := "\upx.exe"
+        verpatch := "\verpatch.exe"
         baseExe := EnvGet("ProgramFiles") . "\AutoHotkey\v2\AutoHotkey64.exe"
+        ;baseExe := "" ; EnvGet("ProgramFiles") . "\AutoHotkey\v2\AutoHotkey64.exe"
         scriptDir := A_ScriptDir
         buildDir := scriptDir . "\" . BUILD_DIRECTORY_NAME
         subBuildDir := buildDir . (SUB_BUILD_DIRECTORY_NAME!="" ? "\" . SUB_BUILD_DIRECTORY_NAME : "")
 
     ;! Build Files:
-        srcFile := scriptDir . "\" .  SCRIPT_TO_COMPILE
+        srcFile := scriptDir . "\" .  SCRIPT_TO_COMPILE 
         interExe := buildDir . "\" . OUTPUT_EXE_NAME
         finalExe := subBuildDir . "\" . OUTPUT_EXE_NAME
-        
+    
     ; AHK REPLACE Data:
         AHK_COMPANY_NAME := "Indie"
         AHK_PRODUCT_NAME := "executable"
-        AHK_APP_CLASS := "Native Window"
-        AHK_REMINANCE := "program"
-        AHK_INTERP_NAME := "______" OUTPUT_EXE_NAME
+        AHK_APP_CLASS := "FFMpeg Tool" ; "Native Window"
+        AHK_REMINANCE := "IME"
+        AHK_INTERP_NAME := "_" OUTPUT_EXE_NAME
 
     ; Gui colours
         bg_color := "f0f0f0"
 ;#endregion
+
+checkBaseBinary()
+checkBuildEnv()
 
 ;#region        Build
     build(){
@@ -92,7 +96,7 @@
 
         ;#region - Build
             progColor("ffa600")
-            RunWait(Format('"{1}" /in "{2}" /out "{3}" /base "{4}"', ahk2exe, srcFile, interExe, targetExe),, "Hide")
+            RunWait(Format('"{1}" /in "{2}" /out "{3}" /base "{4}"', build_tools_dir "\" ahk2exe, srcFile, interExe, targetExe),, "Hide")
             Chk(step3)
             
             Sleep 250
@@ -126,7 +130,7 @@
 
         ;#region - UPX
             progColor("51ff00")
-            RunWait(Format('"{1}" {2} "{3}"', upx, "-9", interExe),, "Hide")
+            RunWait(Format('"{1}" {2} "{3}"', build_tools_dir "\" upx, "-9", interExe),, "Hide")
             Chk(step6)
             
             Sleep 600
@@ -134,7 +138,7 @@
 
         ;#region - UPX-Patcher
             progColor("00ff22")
-            RunWait(Format('"{1}" "{2}"', upxPatcher, interExe),, "Hide")
+            RunWait(Format('"{1}" "{2}"', build_tools_dir "\" upxPatcher, interExe),, "Hide")
             Chk(step61)
             
             Sleep 600
@@ -189,7 +193,7 @@
     global step6     :=     MyGui.Add("Checkbox", "x20 yp+20 Disabled", "6. UPX")
     global step61    :=     MyGui.Add("Checkbox", "x35 yp+20 Disabled", "6.1 UPX-Patcher")
     global step7     :=     MyGui.Add("Checkbox", "x20 yp+20 Disabled", "7. Final binary patches")
-    global step8     :=     MyGui.Add("Checkbox", "x20 yp+20 Disabled", "8. Generating shortcut")
+    global step8     :=     MyGui.Add("Checkbox", "x20 yp+20 Disabled", "8. Generating shortcuts")
     global progBar   :=     MyGui.Add("Progress", "x20 yp+30 w210 -Smooth +0x8",0)
                             startBtn.OnEvent("Click", (*) => StartJob())
                             MyGui.OnEvent("Close", (*) => ExitApp())
@@ -197,7 +201,7 @@
     SendMessage(0x040A, 1, 50, progBar.Hwnd)
 ;#endregion
 
-;#region        GUI Tools
+;#region        GUI Utils:
     MoveWin(byX:=0,byY:=0){
     }
     StartJob(){
@@ -209,6 +213,7 @@
         startBtn.Opt("Disabled")
         build()
         progColor(bg_color)
+        MyGui.Opt("+SysMenu")
         MyGui.Title := "Done, auto closing in 3 seconds..."
         MyGui.Move(,,,285)
         Sleep 3000
@@ -242,7 +247,74 @@
     }
 ;#endregion
 
-;#region        Patching Tools:
+;#region        Enviroment Checkers Utils:
+    checkBaseBinary(){
+        global baseExe
+        goto start
+
+        startselect:
+        baseExe := FileSelect("1", EnvGet("ProgramFiles") . "\AutoHotkey", "Select a ahk binary")
+        goto checkfiles
+
+        start:
+        if (baseExe=="" || !FileExist(baseExe)){
+            if MsgBox("No AutoHotkey v2 binary found; the build will not complete.`nPlease select it now","Error","IconX") == "OK"
+                goto startselect
+            else
+                ExitApp()
+        }
+
+        checkfiles:
+        XbaseExe := FileExist(baseExe)
+        
+        if (!XbaseExe){
+            if (MsgBox( "Do you want to try again?","Error",
+                    "IconX YN"
+            )=="Yes")
+                goto startselect
+            else
+                ExitApp()
+        }
+    }
+    checkBuildEnv(){
+        global build_tools_dir
+        goto start
+
+        startselect:
+        build_tools_dir := FileSelect("D", scriptDir, "Select a Folder")
+        goto checkfiles
+
+        start:
+        if (build_tools_dir=="" || !FileExist(build_tools_dir)){
+            if MsgBox("No build folder found; the build will not complete.`nIf you have a build folder, do you want to select it now?","Error","IconX YN") == "Yes"
+                goto startselect
+            else
+                ExitApp()
+        }
+
+        checkfiles:
+        Xahk2exe := FileExist(build_tools_dir . ahk2exe)
+        XupxPatcher := FileExist(build_tools_dir . upxPatcher)
+        Xupx := FileExist(build_tools_dir . upx)
+        Xverpatch := FileExist(build_tools_dir . verpatch)
+        
+        if (!Xahk2exe || !XupxPatcher || !Xupx || !Xverpatch){
+            if (MsgBox( "There are some missing things`n`n"
+                    "  ahk2exe.exe `t: `t" (Xahk2exe ? "found" : "missing") . "`n"
+                    "  upxPatcher.exe `t: `t" (XupxPatcher ? "found" : "missing") . "`n"
+                    "  upx.exe `t: `t" (Xupx ? "found" : "missing") . "`n"
+                    "  verpatch.exe `t: `t" (Xverpatch ? "found" : "missing") . "`n`n"
+                    "Do you want to choose another folder?","Error",
+                    "IconX YN"
+            )=="Yes")
+                goto startselect
+            else
+                ExitApp()
+        }
+    }
+;#endregion
+
+;#region        Build Utils:
     ;#region - binPatcher:
         /**
          * binPatcher - Professional Binary Search & Replace
@@ -333,12 +405,12 @@
      * @param {Map} info - Map of metadata keys and values
      */
     UpdateExeMetadata(targetExe, info) {
-        if !FileExist(verpatch)
+        if !FileExist(build_tools_dir "\" verpatch)
             throw Error("verpatch.exe not found at: " verpatch)
 
         ; Basic command: verpatch "file" "version"
         versionStr := info.Has("Version") ? info["Version"] : "/vo"
-        cmd := '""' verpatch '" "' targetExe '" "' versionStr '"'
+        cmd := '""' build_tools_dir "\" verpatch '" "' targetExe '" "' versionStr '"'
 
         for key, value in info {
             if (key = "Version")
