@@ -208,78 +208,80 @@ FFmpegManager(ismissing:=false) {
         }
         
         if (path != "") {
-            DetectedFF.Path := path
-            edtPath.Value := path
-            
-            ; Check for FFprobe in same dir
-            SplitPath(path, , &dir)
-            probePath := dir "\ffprobe.exe"
-            if FileExist(probePath) {
-                DetectedFF.ProbePath := probePath
-                edtProbePath.Value := probePath
-                Log("FFprobe found: " probePath)
-            } else {
-                ; Try finding in path if not in same dir
+            try {
+                
+                DetectedFF.Path := path
+                edtPath.Value := path
+                
+                ; Check for FFprobe in same dir
+                SplitPath(path, , &dir)
+                probePath := dir "\ffprobe.exe"
+                if FileExist(probePath) {
+                    DetectedFF.ProbePath := probePath
+                    edtProbePath.Value := probePath
+                    Log("FFprobe found: " probePath)
+                } else {
+                    ; Try finding in path if not in same dir
+                    try {
+                        shell := ComObject("WScript.Shell")
+                        exec := shell.Exec(A_ComSpec " /c where ffprobe")
+                        out := exec.StdOut.ReadAll()
+                        if (out != "") {
+                            probePath := StrSplit(Trim(out), "`n", "`r")[1]
+                            DetectedFF.ProbePath := probePath
+                            edtProbePath.Value := probePath
+                            Log("FFprobe found in PATH: " probePath)
+                        } else {
+                            DetectedFF.ProbePath := "Not Found"
+                            edtProbePath.Value := "Not Found"
+                            Log("FFprobe not found.")
+                        }
+                    }
+                }
+                
+                ; Get Version & Flags
                 try {
                     shell := ComObject("WScript.Shell")
-                    exec := shell.Exec(A_ComSpec " /c where ffprobe")
-                    out := exec.StdOut.ReadAll()
-                    if (out != "") {
-                        probePath := StrSplit(Trim(out), "`n", "`r")[1]
-                        DetectedFF.ProbePath := probePath
-                        edtProbePath.Value := probePath
-                        Log("FFprobe found in PATH: " probePath)
+                    ; Capturing full output to get configuration flags
+                    exec := shell.Exec(Format('"{1}" -version', path))
+                    fullOut := exec.StdOut.ReadAll()
+                    
+                    ; 1. Extract Version
+                    if RegExMatch(fullOut, "ffmpeg version\s+([a-zA-Z0-9\-\._]+)", &m) {
+                        rawVer := m[1]
+                        DetectedFF.Version := rawVer
+                        
+                        ; Smart Clean: Remove suffixes like -essentials, -full, _build for comparison
+                        DetectedFF.CleanVersion := rawVer
+                        if RegExMatch(rawVer, "^(\d+\.\d+(\.\d+)?)", &cleanM) {
+                            DetectedFF.CleanVersion := cleanM[1]
+                        }
+                        
+                        edtVer.Value := rawVer
+                        Log("Version Detected: " rawVer)
                     } else {
-                        DetectedFF.ProbePath := "Not Found"
-                        edtProbePath.Value := "Not Found"
-                        Log("FFprobe not found.")
-                    }
-                }
-            }
-            
-            ; Get Version & Flags
-            try {
-                shell := ComObject("WScript.Shell")
-                ; Capturing full output to get configuration flags
-                exec := shell.Exec(Format('"{1}" -version', path))
-                fullOut := exec.StdOut.ReadAll()
-                
-                ; 1. Extract Version
-                if RegExMatch(fullOut, "ffmpeg version\s+([a-zA-Z0-9\-\._]+)", &m) {
-                    rawVer := m[1]
-                    DetectedFF.Version := rawVer
-                    
-                    ; Smart Clean: Remove suffixes like -essentials, -full, _build for comparison
-                    DetectedFF.CleanVersion := rawVer
-                    if RegExMatch(rawVer, "^(\d+\.\d+(\.\d+)?)", &cleanM) {
-                        DetectedFF.CleanVersion := cleanM[1]
+                        DetectedFF.Version := "Unknown"
+                        edtVer.Value := "Unknown"
                     }
                     
-                    edtVer.Value := rawVer
-                    Log("Version Detected: " rawVer)
-                } else {
-                    DetectedFF.Version := "Unknown"
-                    edtVer.Value := "Unknown"
+                    ; 2. Extract Configuration Flags
+                    if RegExMatch(fullOut, "configuration:\s*(.*)", &confMatch) {
+                        configStr := confMatch[1]
+                        ; Format nicely: replace " --" with "`r`n--" for readabilty
+                        cleanConfig := StrReplace(configStr, " --", "`r`n--")
+                        DetectedFF.Config := cleanConfig
+                        edtFlags.Value := cleanConfig
+                    } else {
+                        edtFlags.Value := "No configuration flags found in output."
+                    }
+                    
+                } catch as e {
+                    edtVer.Value := "Error reading version"
+                    Log("Error extracting version info: " e.Message)
                 }
                 
-                ; 2. Extract Configuration Flags
-                if RegExMatch(fullOut, "configuration:\s*(.*)", &confMatch) {
-                    configStr := confMatch[1]
-                    ; Format nicely: replace " --" with "`r`n--" for readabilty
-                    cleanConfig := StrReplace(configStr, " --", "`r`n--")
-                    DetectedFF.Config := cleanConfig
-                    edtFlags.Value := cleanConfig
-                } else {
-                    edtFlags.Value := "No configuration flags found in output."
-                }
-                
-            } catch as e {
-                edtVer.Value := "Error reading version"
-                Log("Error extracting version info: " e.Message)
-            }
-            
-            CheckOnlineVersion()
-            
+                CheckOnlineVersion()
+            } 
         } else {
             DetectedFF.Path := ""
             DetectedFF.Version := "Not Found"
