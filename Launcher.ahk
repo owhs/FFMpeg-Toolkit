@@ -5,13 +5,13 @@
     Central hub to launch all tools in the suite.
     Organized by category with descriptions.
 */
-#Requires AutoHotkey v2.0
+; #Requires AutoHotkey v2.0
 #SingleInstance Off
 
 ; Import Helper Libraries
 isGUI := true
 #Include lib\utils.ahk
-
+#Include tools\FFMpegManager.ahk
 
 
 global FFWrapper := ""
@@ -20,12 +20,21 @@ global FFWrapper := ""
 try {
     FFWrapper := FFmpegJob()
 } catch as e {
-    customDialog({
-        title: "FFmpeg Missing",
-        message: e.Message,
-        noAltF4: true,
-    }, errorPreset)
-    ExitApp()
+    if (customDialog({
+        title: "FFMpeg Install Missing",
+        message:  "This application relies on FFMpeg.`n`n" . e.Message . "`n`nDo you wish to run the FFMpeg install manager?",
+        ;detail: e.Message,
+        buttons: ["Yes", "No"],
+        defaultButton: "Yes",
+        modal: false,
+        forceParent: false
+    }, errorPreset).value=="Yes")
+        FFmpegManager(true)
+    else
+        ExitApp()
+
+    return
+    ;ExitApp()
 }
 
 
@@ -90,7 +99,8 @@ ToolGroups["Utilities"] := [
     {name: "Media Inspector",     file: "MediaInfoTool",      desc: "Detailed metadata analysis of video, audio, and streams."},
     {name: "Audio Manager",       file: "AudioTool",          desc: "Extract, replace, or mix audio tracks within a video container."},
     {name: "Subtitle Manager",    file: "SubtitleTool",       desc: "Convert formats, extract tracks, or burn-in subtitles hardcoded."},
-    {name: "Auto-Analysis",       file: "RecognitionTool",    desc: "Detect black frames, silence, freeze frames, and scene changes."}
+    {name: "Auto-Analysis",       file: "RecognitionTool",    desc: "Detect black frames, silence, freeze frames, and scene changes."},
+    {name: "FFmpeg Manager",      file: "FFmpegManager",      desc: "Download, Install, Locate, and Update FFmpeg versions."},
 ]
 
 ; ==============================================================================
@@ -119,6 +129,7 @@ if (A_Args.Length > 0) {
         Case "MediaInfoTool", "MediaInfo":       MediaInfoTool(), matched := true
         Case "CropTool", "Crop":                 CropTool(), matched := true
         Case "MusicVisualizer", "Visualizer":    MusicVisualizer(), matched := true
+        Case "FFmpegManager", "Manager":         FFmpegManager(), matched := true
     }
     
     if (matched)
@@ -254,5 +265,8 @@ LaunchTool(tool, *) {
 
     else if (tool=="MusicVisualizer")
         MusicVisualizer()
+
+    else if (tool=="FFmpegManager")
+        FFmpegManager()
         
 }

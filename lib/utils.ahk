@@ -22,6 +22,7 @@ Theme.DarkPanel   := "121212"        ; Inactive Tab color
 Theme.DropdownHover := "2E7D32"      ; A nice Dark Green
 Theme.DropdownSelected := "353535"   ; Background for the item currently active
 
+global InterpreterClassName := "IME"
 
 global fontOptions := ["Arial", "Calibri", "Comic Sans MS", "Consolas", "Corbel", "Courier New", "Franklin Gothic Medium", "Impact", "Lucida Sans", "NSimSun", "Segoe UI", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"]
 ; ==============================================================================
@@ -34,15 +35,17 @@ global AppMonitorStarted := false
 * Applies Dark Mode window attributes and sets up global message handlers.
 * @param {Gui} guiObj The main GUI object
 */
+setDarkWin(Hwnd){
+    if (VerCompare(A_OSVersion, "10.0.17763") >= 0) {
+        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", Hwnd, "Int", 19, "Int*", 1, "Int", 4)
+        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", Hwnd, "Int", 20, "Int*", 1, "Int", 4)
+        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", Hwnd, "Int", 35, "Int*", 0x121212, "Int", 4)
+    }
+}
 InitWindowUtils(guiObj) {
     global AppMonitorStarted
+    setDarkWin(guiObj.Hwnd)
 
-    if (VerCompare(A_OSVersion, "10.0.17763") >= 0) {
-        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", guiObj.Hwnd, "Int", 19, "Int*", 1, "Int", 4)
-        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", guiObj.Hwnd, "Int", 20, "Int*", 1, "Int", 4)
-        try DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", guiObj.Hwnd, "Int", 35, "Int*", 0x121212, "Int", 4)
-    }
-    
     ; Global Event Handlers for Custom Controls
     OnMessage(0x0201, WM_LBUTTONDOWN)   ; Click (Close dropdowns)
     OnMessage(0x00A1, WM_NCLBUTTONDOWN) ; Title Bar Click (Close dropdowns)
@@ -63,6 +66,7 @@ InitWindowUtils(guiObj) {
         SetTimer(CheckAppWindows, 1000)
         AppMonitorStarted := true
     }
+    ;fixdebugwindow()
 }
 
 /**
@@ -97,14 +101,28 @@ TryCloseWindow(guiObj) {
 }
 
 CheckAppWindows() {
-    ; Get list of visible windows owned by this script
-    ; DetectHiddenWindows is Off by default, so this gets only visible ones
     try {
-        id := WinGetList("ahk_pid " ProcessExist())
-        if (id.Length == 0)
+        ; Get list of all visible windows for this process
+        idList := WinGetList("ahk_pid " ProcessExist())
+        
+        ; Assume we should exit until we find a "real" window
+        shouldExit := true
+        
+        for thisID in idList {
+            ; Check the class of the current window in the loop
+            if (WinGetClass(thisID) !== InterpreterClassName) {
+                ; We found a window that isn't an IME window
+                ; Therefore, the app is still "in use"
+                shouldExit := false
+                break 
+            }
+        }
+        
+        if (shouldExit)
             ExitApp()
+            
     } catch {
-        ; Safety catch
+        ; Safety catch for windows closing during the check
     }
 }
 
@@ -116,6 +134,7 @@ SetDarkControl(ctrl) {
 
 AddFlatEdit(parentGui, opt, txt := "") {
     ctl := parentGui.Add("Edit", opt " -E0x200 +Border Background" Theme.Panel " c" Theme.Text, txt)
+    SetDarkControl(ctl) ; Apply dark theme for scrollbars
     return ctl
 }
 
@@ -1161,7 +1180,7 @@ class FFmpegJob {
             return
         }
         
-        throw Error("FFmpeg executable not found.`nPlease install, or place ffmpeg.exe in the app folder.")
+        throw Error("FFMpeg installation not found.`nPlease install, or place tools in the app folder.")
     }
     
     IsRunning() {
@@ -1519,60 +1538,45 @@ CloseDropdownIfClickedOutside(hwnd) {
     }
 }
 
-WM_NCHITTEST(wParam, lParam, msg, hwnd) {
-    ; Add global handling if needed, currently CustomDialog has its own.
-}
 
-GetResourceText(resName) {
-    hMod := DllCall("GetModuleHandle", "Ptr", 0, "Ptr")
-    hRes := DllCall("FindResource", "Ptr", hMod, "Str", resName, "Ptr", 10, "Ptr") ; 10 = RT_RCDATA
-    if !hRes
-        throw Error("Resource not found: " resName)
-        
-    hData := DllCall("LoadResource", "Ptr", hMod, "Ptr", hRes, "Ptr")
-    pData := DllCall("LockResource", "Ptr", hData, "Ptr")
-    sData := DllCall("SizeofResource", "Ptr", hMod, "Ptr", hRes, "UInt")
-    
-    if !pData || !sData
-        throw Error("Empty resource.")
 
-    ; FIX: Copy to a new buffer and Null-Terminate it to prevent crashes
-    safeBuf := Buffer(sData + 2, 0) ; +2 for double null terminator safety
-    DllCall("RtlMoveMemory", "Ptr", safeBuf.Ptr, "Ptr", pData, "UPtr", sData)
-    
-    ; Now we read from our SAFE buffer, letting AHK find the end naturally
-    return StrGet(safeBuf, "UTF-8")
-}
-
-RunPipe(scriptText) {
-    shell := ComObject("WScript.Shell")
-    
-    ; START THE CHILD PROCESS
-    if A_IsCompiled {
-        ; We are a compiled EXE. We need the /script switch to act as an interpreter.
-        ; We use A_ScriptFullPath because A_AhkPath might not point where we expect in some compiled setups.
-        exec := shell.Exec(Format('"{1}" /script /CP65001 "*"', A_ScriptFullPath))
+GetSourceFPS(file) {
+    ; Use ffprobe to get exact FPS
+    tempLog := A_Temp "\fps_probe_" A_TickCount ".txt"
+    ff := FFWrapper.ffmpegPath
+    if InStr(ff, "\") {
+            SplitPath(ff, , &dir)
+            probe := dir "\ffprobe.exe"
     } else {
-        ; We are testing uncompiled (in VSCode/SciTE). 
-        ; We do NOT use /script. We just call the interpreter directly.
-        exec := shell.Exec(Format('"{1}" /CP65001 "*"', A_AhkPath))
+            probe := "ffprobe"
     }
     
-    ; FEED THE CODE
-    try {
-        exec.StdIn.Write(scriptText)
-        exec.StdIn.Close()
-    } catch {
-        ; If this fails, the child process died before we could give it code.
-        ; This usually means the resource text was empty or invalid.
-        MsgBox("The child process closed unexpectedly. Check that your Resource Name matches exactly.")
+    cmd := Format('"{1}" -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "{2}" > "{3}"', probe, file, tempLog)
+    RunWait(A_ComSpec " /c " cmd, , "Hide")
+    
+    if FileExist(tempLog) {
+        rateStr := FileRead(tempLog)
+        FileDelete(tempLog)
+        if InStr(rateStr, "/") {
+            parts := StrSplit(rateStr, "/")
+            if (parts.Length == 2 && parts[2] > 0)
+                return parts[1] / parts[2]
+        } else if IsNumber(Trim(rateStr)) {
+            return Float(Trim(rateStr))
+        }
     }
+    return 30.0 ; Default fallback
 }
-
 
 
 
 ;@Ahk2Exe-SetMainIcon lib/icon.ico
+;Ahk2Exe-SetName FFMpeg Toolkit
+;@Ahk2Exe-SetDescription FFMpeg Toolkit
+;@Ahk2Exe-SetVersion 2.2.0.0
+;@Ahk2Exe-SetCopyright Copyright (c) 2025
+;@Ahk2Exe-SetCompanyName owhs
+; Ahk2Exe-SetProduct FFMpeg Toolkit
 
 I_Icon := "lib/icon.ico"
 if FileExist(I_Icon)
@@ -1586,3 +1590,4 @@ Tray.Add("Show Launcher", (*) => LauncherGUI())
 ;Tray.Add()
 Tray.Add("Exit", (*) => ExitApp())
 Tray.Default := "Show Launcher"
+
